@@ -3,7 +3,7 @@ image:
 
 build:
   script:
-    - pacman -S fish
+    - pacman -Syu fish
     - fish build.fish
   artifacts:
     paths:
