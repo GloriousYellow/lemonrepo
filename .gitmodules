@@ -1,0 +1,6 @@
+[submodule "packages/trizen"]
+	path = packages/trizen
+	url = https://aur.archlinux.org/trizen.git
+[submodule "packages/qdirstat"]
+	path = packages/qdirstat
+	url = https://aur.archlinux.org/qdirstat.git
