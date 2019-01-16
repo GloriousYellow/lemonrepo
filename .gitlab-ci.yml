@@ -1,0 +1,9 @@
+image:
+  name: base/archlinux
+
+build:
+  script:
+    - fish build.fish
+  artifacts:
+    paths:
+    - dist/_repo
