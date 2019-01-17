@@ -8,7 +8,7 @@ cd dist
 for dir in *
   cd $dir
   git init
-  env PKGEXT='.pkg.tar.xz' makepkg -s
+  env PKGEXT='.pkg.tar.xz' makepkg -s --asroot
   cp *.pkg.tar.xz ../_repo
   cd ..
 end
