@@ -1,0 +1,13 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: base/archlinux
+    steps:
+      - checkout
+      - run:
+          name: Install
+          command: pacman -Syu fish
+      - run:
+          name: Build
+          command: ./build.fish
