@@ -7,7 +7,7 @@ jobs:
       - checkout
       - run:
           name: Install
-          command: pacman -Syu fish git curl --noconfirm
+          command: pacman -Syu fish git curl ssh --noconfirm
       - run:
           name: Build
           command: ./build.fish
