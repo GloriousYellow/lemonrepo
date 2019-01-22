@@ -4,6 +4,8 @@ rm -rf dist
 cp -r packages dist
 mkdir dist/_repo
 
+chmod 777 -R .
+
 cd dist
 for dir in *
   cd $dir
