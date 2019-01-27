@@ -7,6 +7,8 @@ git submodule update --init --recursive
 rm -rf dist
 cp -r packages dist
 
+mkdir dist/_repo
+
 cd dist
 for dir in *
   cd $dir
