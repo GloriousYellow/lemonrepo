@@ -16,7 +16,5 @@ for dir in *
   cd ..
 end
 
-mkdir _repo
-
 cd _repo
 repo-add lemonrepo.db.tar.xz *.pkg.tar.xz
