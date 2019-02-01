@@ -1,6 +1,7 @@
 #!/usr/bin/env fish
 
 sed -i 's/exit \$E_ROOT/#disabled/g' /usr/sbin/makepkg
+echo "StrictHostKeyChecking no" >> ~/.ssh/config
 
 git submodule update --init --recursive
 
