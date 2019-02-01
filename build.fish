@@ -12,6 +12,7 @@ cp -r packages dist
 cd dist
 
 git clone git@github.com:GloriousYellow/lemonrepo-files.git _repo
+rm -rf repo/*
 
 for dir in *
   if [ $dir != _repo ]
@@ -25,3 +26,6 @@ end
 
 cd _repo
 repo-add lemonrepo.db.tar.xz *.pkg.tar.xz
+git add .
+git commit -am 'Automatic update'
+git push
