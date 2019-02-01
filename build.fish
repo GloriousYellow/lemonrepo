@@ -26,6 +26,10 @@ end
 
 cd _repo
 repo-add lemonrepo.db.tar.xz *.pkg.tar.xz
+
+git config user.email "you@example.com"
+git config user.name "Build Server"
+
 git add .
 git commit -am 'Automatic update'
 git push
