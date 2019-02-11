@@ -5,6 +5,7 @@ sed -i 's/exit \$E_ROOT/#disabled/g' /usr/sbin/makepkg
 mkdir ~/.ssh
 echo "Host *" >> ~/.ssh/config
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
+ssh-add -D
 ssh-add /root/.ssh/id_rsa_803e3ff627dc90db556ff9c520ad99fd
 
 git submodule update --init --recursive
