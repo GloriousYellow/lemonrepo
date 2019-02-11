@@ -1,6 +1,6 @@
 [submodule "packages/trizen"]
 	path = packages/trizen
 	url = https://aur.archlinux.org/trizen.git
-[submodule "packages/qdirstat"]
-	path = packages/qdirstat
-	url = https://aur.archlinux.org/qdirstat.git
+[submodule "packages/mutter-performance"]
+	path = packages/mutter-performance
+	url = https://aur.archlinux.org/mutter-781835-workaround.git
