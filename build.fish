@@ -31,6 +31,12 @@ end
 cd _repo
 repo-add lemonrepo.db.tar.xz *.pkg.tar.xz
 
+rm lemonrepo.db
+rm lemonrepo.files
+
+cp lemonrepo.db.tar.xz lemonrepo.db
+cp lemonrepo.files.tar.xz lemonrepo.files
+
 git config user.email "you@example.com"
 git config user.name "Build Server"
 
