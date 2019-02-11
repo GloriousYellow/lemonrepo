@@ -14,7 +14,7 @@ cp -r packages dist
 
 cd dist
 
-#git clone git@github.com:GloriousYellow/lemonrepo-files.git _repo
+git clone git@github.com:GloriousYellow/lemonrepo-files.git _repo
 rm -rf _repo/*
 
 for dir in *
