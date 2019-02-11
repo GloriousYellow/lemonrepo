@@ -3,6 +3,8 @@
 sed -i 's/exit \$E_ROOT/#disabled/g' /usr/sbin/makepkg
 mkdir ~/.ssh
 
+echo "StrictHostKeyChecking no" >> ~/.ssh/config
+
 git submodule update --init --recursive
 
 rm -rf dist
@@ -10,7 +12,6 @@ cp -r packages dist
 
 cd dist
 
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
 git clone git@github.com:GloriousYellow/lemonrepo-files.git _repo
 rm -rf repo/*
 
