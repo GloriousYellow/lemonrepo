@@ -7,7 +7,7 @@ jobs:
       - checkout
       - run:
           name: Install
-          command: pacman -Sy git curl openssh base-devel --noconfirm
+          command: pacman -Syu git curl openssh base-devel --noconfirm
       - add_ssh_keys:
           fingerprints:
             - "80:3e:3f:f6:27:dc:90:db:55:6f:f9:c5:20:ad:99:fd"
