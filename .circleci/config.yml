@@ -13,6 +13,6 @@ jobs:
             - "80:3e:3f:f6:27:dc:90:db:55:6f:f9:c5:20:ad:99:fd"
       - run:
           name: Build
-          command: ./build.fish
+          command: ./build.sh
       - store_artifacts:
           path: dist/_repo
