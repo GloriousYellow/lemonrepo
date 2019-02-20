@@ -1,4 +1,4 @@
-#!/usr/bin/env fish
+#!/usr/bin/env sh
 set -eux
 
 sed -i 's/exit \$E_ROOT/#disabled/g' /usr/sbin/makepkg
