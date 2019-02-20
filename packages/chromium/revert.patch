@@ -1,0 +1,233 @@
+commit 079d17381979d8c31e27cf63118291c60e53fb68
+Author: GloriousYellow <yellowglorious@gmail.com>
+Date:   Tue Feb 19 18:12:14 2019 -0500
+
+    Revert "Remove pre-Refresh MD modes from top-chrome-md"
+    
+    This reverts commit 06b383969bc77710e075aa443a0fe263ef6e2010.
+
+diff --git a/chrome/browser/about_flags.cc b/chrome/browser/about_flags.cc
+index caf422f7edb5..f25b447e5d99 100644
+--- a/chrome/browser/about_flags.cc
++++ b/chrome/browser/about_flags.cc
+@@ -451,12 +451,21 @@ const FeatureEntry::Choice kExtensionContentVerificationChoices[] = {
+ 
+ const FeatureEntry::Choice kTopChromeTouchUiChoices[] = {
+     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
+-    {flags_ui::kGenericExperimentChoiceAutomatic, switches::kTopChromeTouchUi,
+-     switches::kTopChromeTouchUiAuto},
+-    {flags_ui::kGenericExperimentChoiceDisabled, switches::kTopChromeTouchUi,
+-     switches::kTopChromeTouchUiDisabled},
+-    {flags_ui::kGenericExperimentChoiceEnabled, switches::kTopChromeTouchUi,
+-     switches::kTopChromeTouchUiEnabled}};
++    {flag_descriptions::kTopChromeMdMaterial, switches::kTopChromeMD,
++     switches::kTopChromeMDMaterial},
++    {flag_descriptions::kTopChromeMdMaterialHybrid, switches::kTopChromeMD,
++     switches::kTopChromeMDMaterialHybrid},
++    {flag_descriptions::kTopChromeMdMaterialAuto, switches::kTopChromeMD,
++     switches::kTopChromeMDMaterialAuto},
++    {flag_descriptions::kTopChromeMdMaterialTouchOptimized,
++     switches::kTopChromeMD, switches::kTopChromeMDMaterialTouchOptimized},
++    {flag_descriptions::kTopChromeMdMaterialRefresh, switches::kTopChromeMD,
++     switches::kTopChromeMDMaterialRefresh},
++    {flag_descriptions::kTopChromeMdMaterialRefreshTouchOptimized,
++     switches::kTopChromeMD,
++     switches::kTopChromeMDMaterialRefreshTouchOptimized},
++    {flag_descriptions::kTopChromeMdMaterialRefreshDynamic,
++     switches::kTopChromeMD, switches::kTopChromeMDMaterialRefreshDynamic}};
+ 
+ const FeatureEntry::Choice kNewTabButtonPositionChoices[] = {
+     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
+diff --git a/chrome/browser/flag_descriptions.cc b/chrome/browser/flag_descriptions.cc
+index a10d015b6356..6686411839ea 100644
+--- a/chrome/browser/flag_descriptions.cc
++++ b/chrome/browser/flag_descriptions.cc
+@@ -1872,9 +1872,20 @@ const char kTintGlCompositedContentDescription[] =
+     "Tint contents composited using GL with a shade of red to help debug and "
+     "study overlay support.";
+ 
+-const char kTopChromeTouchUiName[] = "Touch UI Layout";
+-const char kTopChromeTouchUiDescription[] =
+-    "Enables touch UI layout in the browser's top chrome.";
++const char kTopChromeMd[] = "UI Layout for the browser's top chrome";
++const char kTopChromeMdDescription[] =
++    "Toggles between 1) Normal - for clamshell devices, 2) Hybrid (previously "
++    "touch) - middle point for devices with a touch screen, 3) Touchable "
++    "- new unified interface for touch and convertibles (Chrome OS), 4) "
++    "Material Design refresh and 5) Touchable Material Design refresh. "
++    "Enabling #upcoming-ui-features forces the Material Design refresh option.";
++const char kTopChromeMdMaterial[] = "Normal";
++const char kTopChromeMdMaterialAuto[] = "Auto";
++const char kTopChromeMdMaterialHybrid[] = "Hybrid";
++const char kTopChromeMdMaterialTouchOptimized[] = "Touchable";
++const char kTopChromeMdMaterialRefresh[] = "Refresh";
++const char kTopChromeMdMaterialRefreshTouchOptimized[] = "Touchable Refresh";
++const char kTopChromeMdMaterialRefreshDynamic[] = "Dynamic Refresh";
+ 
+ const char kThreadedScrollingName[] = "Threaded scrolling";
+ const char kThreadedScrollingDescription[] =
+diff --git a/chrome/browser/ui/views/location_bar/location_bar_view_browsertest.cc b/chrome/browser/ui/views/location_bar/location_bar_view_browsertest.cc
+index 6b5b3a90ef52..3c5b4f85b0ab 100644
+--- a/chrome/browser/ui/views/location_bar/location_bar_view_browsertest.cc
++++ b/chrome/browser/ui/views/location_bar/location_bar_view_browsertest.cc
+@@ -34,7 +34,7 @@
+ #include "net/test/cert_test_util.h"
+ #include "net/test/test_data_directory.h"
+ #include "services/network/public/cpp/features.h"
+-#include "ui/base/test/material_design_controller_test_api.h"
++#include "ui/base/ui_base_switches.h"
+ 
+ class LocationBarViewBrowserTest : public InProcessBrowserTest {
+  public:
+@@ -127,10 +127,15 @@ IN_PROC_BROWSER_TEST_F(LocationBarViewBrowserTest, BubblesCloseOnHide) {
+ 
+ class TouchLocationBarViewBrowserTest : public LocationBarViewBrowserTest {
+  public:
+-  TouchLocationBarViewBrowserTest() : test_api_(true) {}
++  TouchLocationBarViewBrowserTest() = default;
++
++  void SetUpCommandLine(base::CommandLine* command_line) override {
++    command_line->AppendSwitchASCII(
++        switches::kTopChromeMD, switches::kTopChromeMDMaterialTouchOptimized);
++    LocationBarViewBrowserTest::SetUpCommandLine(command_line);
++  }
+ 
+  private:
+-  ui::test::MaterialDesignControllerTestAPI test_api_;
+   DISALLOW_COPY_AND_ASSIGN(TouchLocationBarViewBrowserTest);
+ };
+ 
+diff --git a/ui/base/material_design/material_design_controller.cc b/ui/base/material_design/material_design_controller.cc
+index bf0caa691890..7e1f0a239664 100644
+--- a/ui/base/material_design/material_design_controller.cc
++++ b/ui/base/material_design/material_design_controller.cc
+@@ -67,19 +67,26 @@ void MaterialDesignController::Initialize() {
+       features::IsAutomaticUiAdjustmentsForTouchEnabled()) {
+ #if defined(OS_CHROMEOS)
+     // TabletModeClient's default state is in non-tablet mode.
+-    automatic_touch_ui_ = true;
+-#elif defined(OS_WIN)
+-    if (base::win::GetVersion() >= base::win::VERSION_WIN10) {
+-      // Win 10+ uses dynamic mode by default and checks the current tablet mode
+-      // state to determine whether to start in touch mode.
+-      automatic_touch_ui_ = true;
+-      if (base::MessageLoopCurrentForUI::IsSet() &&
+-          !GetInstance()->singleton_hwnd_observer_) {
+-        GetInstance()->singleton_hwnd_observer_ =
+-            std::make_unique<gfx::SingletonHwndObserver>(
+-                base::BindRepeating(TabletModeWatcherWinProc));
+-        touch = IsTabletMode();
+-      }
++    SetMode(MATERIAL_REFRESH);
++  } else if (switch_value == switches::kTopChromeMDMaterial) {
++    SetMode(MATERIAL_NORMAL);
++  } else if (switch_value == switches::kTopChromeMDMaterialHybrid) {
++    SetMode(MATERIAL_HYBRID);
++  } else if (switch_value == switches::kTopChromeMDMaterialTouchOptimized) {
++    SetMode(MATERIAL_TOUCH_OPTIMIZED);
++  } else if (switch_value == switches::kTopChromeMDMaterialAuto) {
++#if defined(OS_WIN)
++    // TODO(thomasanderson): add support for switching between modes when the
++    // device switches to "tablet mode".
++    if (base::win::IsTabletDevice(nullptr, ui::GetHiddenWindow()))
++      SetMode(MATERIAL_HYBRID);
++#endif
++    SetMode(MATERIAL_REFRESH);
++  } else {
++    if (!switch_value.empty()) {
++      LOG(ERROR) << "Invalid value='" << switch_value
++                 << "' for command line switch '" << switches::kTopChromeMD
++                 << "'.";
+     }
+ #endif
+   }
+diff --git a/ui/base/ui_base_switches.cc b/ui/base/ui_base_switches.cc
+index c2d4f252d6f8..50966c0e402b 100644
+--- a/ui/base/ui_base_switches.cc
++++ b/ui/base/ui_base_switches.cc
+@@ -73,11 +73,36 @@ const char kMaterialDesignInkDropAnimationSpeedFast[] = "fast";
+ // Defines that Material Design visual feedback animations should be slow.
+ const char kMaterialDesignInkDropAnimationSpeedSlow[] = "slow";
+ 
+-// Controls touch-optimized UI layout for top chrome.
+-const char kTopChromeTouchUi[] = "top-chrome-touch-ui";
+-const char kTopChromeTouchUiAuto[] = "auto";
+-const char kTopChromeTouchUiDisabled[] = "disabled";
+-const char kTopChromeTouchUiEnabled[] = "enabled";
++// Enables top Chrome material design elements.
++const char kTopChromeMD[] = "top-chrome-md";
++
++// Material design mode for the |kTopChromeMD| switch.
++const char kTopChromeMDMaterial[] = "material";
++
++// Auto-switching mode |kTopChromeMD| switch. This mode toggles between
++// material and material-hybrid depending on device.
++const char kTopChromeMDMaterialAuto[] = "material-auto";
++
++// Material design hybrid mode for the |kTopChromeMD| switch. Targeted for
++// mouse/touch hybrid devices.
++const char kTopChromeMDMaterialHybrid[] = "material-hybrid";
++
++// Material design mode that is more optimized for touch devices for the
++// |kTopChromeMD| switch.
++const char kTopChromeMDMaterialTouchOptimized[] = "material-touch-optimized";
++
++// Material design mode that represents a refresh of the Chrome UI for the
++// |kTopChromeMD| switch.
++const char kTopChromeMDMaterialRefresh[] = "material-refresh";
++
++// Material design mode that represents a touchable version of material-refresh
++// for the |kTopChromeMD| switch.
++const char kTopChromeMDMaterialRefreshTouchOptimized[] =
++    "material-refresh-touch-optimized";
++
++// Switches between material refresh and touchable material refresh depending on
++// the tablet mode.
++const char kTopChromeMDMaterialRefreshDynamic[] = "material-refresh-dynamic";
+ 
+ // Disable partial swap which is needed for some OpenGL drivers / emulators.
+ const char kUIDisablePartialSwap[] = "ui-disable-partial-swap";
+diff --git a/ui/base/ui_base_switches.h b/ui/base/ui_base_switches.h
+index 2162f1e1f98b..21a3b17c5887 100644
+--- a/ui/base/ui_base_switches.h
++++ b/ui/base/ui_base_switches.h
+@@ -37,10 +37,14 @@ UI_BASE_EXPORT extern const char kMaterialDesignInkDropAnimationSpeedSlow[];
+ UI_BASE_EXPORT extern const char kShowOverdrawFeedback[];
+ UI_BASE_EXPORT extern const char kSlowDownCompositingScaleFactor[];
+ UI_BASE_EXPORT extern const char kTintGlCompositedContent[];
+-UI_BASE_EXPORT extern const char kTopChromeTouchUi[];
+-UI_BASE_EXPORT extern const char kTopChromeTouchUiAuto[];
+-UI_BASE_EXPORT extern const char kTopChromeTouchUiDisabled[];
+-UI_BASE_EXPORT extern const char kTopChromeTouchUiEnabled[];
++UI_BASE_EXPORT extern const char kTopChromeMD[];
++UI_BASE_EXPORT extern const char kTopChromeMDMaterial[];
++UI_BASE_EXPORT extern const char kTopChromeMDMaterialAuto[];
++UI_BASE_EXPORT extern const char kTopChromeMDMaterialHybrid[];
++UI_BASE_EXPORT extern const char kTopChromeMDMaterialTouchOptimized[];
++UI_BASE_EXPORT extern const char kTopChromeMDMaterialRefresh[];
++UI_BASE_EXPORT extern const char kTopChromeMDMaterialRefreshTouchOptimized[];
++UI_BASE_EXPORT extern const char kTopChromeMDMaterialRefreshDynamic[];
+ UI_BASE_EXPORT extern const char kUIDisablePartialSwap[];
+ 
+ // Test related.
+diff --git a/ui/views/controls/button/label_button_unittest.cc b/ui/views/controls/button/label_button_unittest.cc
+index af7f28da1a0f..3975f32ac1aa 100644
+--- a/ui/views/controls/button/label_button_unittest.cc
++++ b/ui/views/controls/button/label_button_unittest.cc
+@@ -569,6 +569,8 @@ class InkDropLabelButtonTest : public ViewsTestBase {
+ 
+   // ViewsTestBase:
+   void SetUp() override {
++    base::CommandLine::ForCurrentProcess()->AppendSwitchASCII(
++        switches::kTopChromeMD, switches::kTopChromeMDMaterial);
+     ViewsTestBase::SetUp();
+ 
+     // Create a widget so that the Button can query the hover state
+@@ -592,6 +594,7 @@ class InkDropLabelButtonTest : public ViewsTestBase {
+   void TearDown() override {
+     widget_.reset();
+     ViewsTestBase::TearDown();
++    ui::test::MaterialDesignControllerTestAPI::Uninitialize();
+   }
+ 
+  protected:

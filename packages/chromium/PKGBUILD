@@ -112,7 +112,7 @@ prepare() {
   patch -Np1 -i ../chromium-system-icu.patch
 
   # Revert removal of #top-chrome-md pre-refresh options
-  git revert -v 06b383969bc77710e075aa443a0fe263ef6e2010 -X theirs
+  patch -Np1 -i ../revert.patch
 
   # Remove compiler flags not supported by our system clang
   sed -i \
