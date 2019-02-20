@@ -3,7 +3,7 @@ set -eux
 
 sed -i 's/exit \$E_ROOT/#disabled/g' /usr/sbin/makepkg
 
-mkdir ~/.ssh
+mkdir ~/.ssh || true
 echo "Host *" >> ~/.ssh/config
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
 ssh-add -D
